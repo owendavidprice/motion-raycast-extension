@@ -214,12 +214,12 @@ export default function Command() {
       setIsLoading(true);
       const motionClient = getMotionApiClient();
       await motionClient.deleteTask(taskId);
-      
+
       await showToast({
         style: Toast.Style.Success,
         title: "Task deleted",
       });
-      
+
       // Reload tasks to update the list
       await loadTasks();
     } catch (error) {
@@ -341,7 +341,7 @@ export default function Command() {
                       shortcut={{ modifiers: ["cmd"], key: "d" }}
                     />
                   </ActionPanel.Section>
-                  
+
                   <ActionPanel.Section>
                     <Action.OpenInBrowser
                       title="Open in Motion"
