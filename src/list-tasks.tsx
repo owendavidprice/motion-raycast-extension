@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { List, ActionPanel, Action, Toast, showToast, Icon, confirmAlert } from "@raycast/api";
 import { getMotionApiClient, Project } from "./api/motion";
-import EditTask from "./edit-task";
 
 // Define task types
 interface Task {
@@ -334,12 +333,6 @@ export default function Command() {
               actions={
                 <ActionPanel>
                   <ActionPanel.Section>
-                    <Action.Push
-                      title="Edit Task"
-                      icon={Icon.Pencil}
-                      target={<EditTask task={task} onTaskUpdated={loadTasks} />}
-                      shortcut={{ modifiers: ["cmd"], key: "e" }}
-                    />
                     <Action
                       title="Delete Task"
                       icon={Icon.Trash}
