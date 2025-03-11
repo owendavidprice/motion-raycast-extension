@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { List, ActionPanel, Action, Toast, showToast, Icon } from "@raycast/api";
+import { List, ActionPanel, Action, Toast, showToast, Icon, confirmAlert } from "@raycast/api";
 import { getMotionApiClient, Project } from "./api/motion";
+import EditTask from "./edit-task";
 
 // Define task types
 interface Task {
@@ -195,6 +196,45 @@ export default function Command() {
     setSearchText("");
   }
 
+  // Delete a task
+  async function deleteTask(taskId: string) {
+    try {
+      // Show confirmation dialog
+      const confirmed = await confirmAlert({
+        title: "Delete Task",
+        message: "Are you sure you want to delete this task? This action cannot be undone.",
+        primaryAction: {
+          title: "Delete",
+        },
+      });
+
+      if (!confirmed) {
+        return;
+      }
+
+      setIsLoading(true);
+      const motionClient = getMotionApiClient();
+      await motionClient.deleteTask(taskId);
+      
+      await showToast({
+        style: Toast.Style.Success,
+        title: "Task deleted",
+      });
+      
+      // Reload tasks to update the list
+      await loadTasks();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to delete task",
+        message: String(error),
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <List
       isLoading={isLoading}
@@ -293,26 +333,44 @@ export default function Command() {
               ]}
               actions={
                 <ActionPanel>
-                  <Action.OpenInBrowser
-                    title="Open in Motion"
-                    url={`https://app.usemotion.com/tasks/${task.id}`}
-                  />
-                  <Action.CopyToClipboard
-                    title="Copy Task Id"
-                    content={String(task.id)}
-                    shortcut={{ modifiers: ["cmd"], key: "." }}
-                  />
-                  <Action.CopyToClipboard
-                    title="Copy Task Details"
-                    content={JSON.stringify(task, null, 2)}
-                    shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
-                  />
-                  <Action
-                    title="Refresh Tasks"
-                    onAction={loadTasks}
-                    icon={Icon.ArrowClockwise}
-                    shortcut={{ modifiers: ["cmd"], key: "r" }}
-                  />
+                  <ActionPanel.Section>
+                    <Action.Push
+                      title="Edit Task"
+                      icon={Icon.Pencil}
+                      target={<EditTask task={task} onTaskUpdated={loadTasks} />}
+                      shortcut={{ modifiers: ["cmd"], key: "e" }}
+                    />
+                    <Action
+                      title="Delete Task"
+                      icon={Icon.Trash}
+                      style={Action.Style.Destructive}
+                      onAction={() => deleteTask(task.id || "")}
+                      shortcut={{ modifiers: ["cmd"], key: "d" }}
+                    />
+                  </ActionPanel.Section>
+                  
+                  <ActionPanel.Section>
+                    <Action.OpenInBrowser
+                      title="Open in Motion"
+                      url={`https://app.usemotion.com/tasks/${task.id}`}
+                    />
+                    <Action.CopyToClipboard
+                      title="Copy Task Id"
+                      content={String(task.id)}
+                      shortcut={{ modifiers: ["cmd"], key: "." }}
+                    />
+                    <Action.CopyToClipboard
+                      title="Copy Task Details"
+                      content={JSON.stringify(task, null, 2)}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
+                    />
+                    <Action
+                      title="Refresh Tasks"
+                      onAction={loadTasks}
+                      icon={Icon.ArrowClockwise}
+                      shortcut={{ modifiers: ["cmd"], key: "r" }}
+                    />
+                  </ActionPanel.Section>
                 </ActionPanel>
               }
             />
